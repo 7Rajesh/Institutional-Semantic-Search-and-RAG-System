@@ -97,7 +97,7 @@ pytest
 
 The suite swaps in small deterministic stand-ins for the embedding and reranker models, so it doesn't need a GPU or a download to run. It covers chunking edge cases, PDF and HTML ingestion, the full agent loop (abstaining, widening, rewriting, role and version filtering, conversation memory), the verifier, and the API endpoints.
 
-## Known limitations
+##  limitations
 
 - Scanned PDFs have no text layer and get skipped, not crashed on. Run them through OCR first.
 - The verifier checks digits, not words, so "thirty days" would slip past even if the source says something else. The optional LLM cross-check catches some of this but not all of it.
