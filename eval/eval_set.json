@@ -9,7 +9,7 @@
     {"q": "How long does a PhD take?", "contains": "maximum of 6 years"},
     {"q": "Which professor works on information retrieval?", "contains": "information retrieval"},
     {"q": "How do I ask for re-evaluation of my paper?", "contains": "5 working days"},
-    {"q": "What is the fine for returning library books late?", "contains": "Rs 2 per day"},
+    {"q": "What is the fine for returning library books late ?", "contains": "Rs 2 per day"},
     {"q": "How long does the grievance cell take to reply?", "contains": "15 working days"},
     {"q": "What CGPA puts a student on probation?", "contains": "below 5.0"},
     {"q": "Until when can I change my hostel room?", "contains": "first two weeks"},
