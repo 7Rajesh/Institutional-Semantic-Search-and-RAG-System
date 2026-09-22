@@ -61,10 +61,10 @@ isearch report                                     # usage stats, unanswered que
 Drop pdf, txt, md, or html files into `data/documents/<category>/`. A text or markdown file can carry front matter:
 
 ```
-title: Academic Regulations 2024
+title: Academic Regulations 2025
 category: academic
 audience: student
-effective: 2024-07-01
+effective: 2025-07-01
 
 Course Registration
 ...
@@ -76,7 +76,7 @@ For PDFs and HTML, add a sidecar file instead — `yourfile.pdf.meta.json`:
 {"category": "academic", "audience": "staff", "effective": "2024-07-01"}
 ```
 
-Real files always take priority over the bundled `sample_*` files, so you don't need to delete the samples by hand — just add your own documents and they'll be used instead.
+Real files always take priority over the bundled `sample_*` files, so no need to delete the samples by hand — just add your own documents and they'll be used instead.
 
 The sample documents are made up for testing. Every number and rule in them is invented, so don't treat them as real policy.
 
