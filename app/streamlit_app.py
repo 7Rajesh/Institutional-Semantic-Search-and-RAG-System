@@ -1,4 +1,4 @@
-"""Streamlit chat UI with multi-turn memory, citations, feedback, and an admin tab."""
+"""Streamli chat UI with multi-turn memory, citations, feedback, and an admin tab."""
 from __future__ import annotations
 
 import sys
