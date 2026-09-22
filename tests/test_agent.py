@@ -103,7 +103,7 @@ def test_upload_and_delete_document(assistant):
     r2 = assistant.ask("What is the rule about parking?", role="staff", use_llm=False)
     assert not r2.answered
 
-
+# reject
 def test_upload_rejects_bad_category_and_type(assistant):
     import pytest
     with pytest.raises(ValueError):
