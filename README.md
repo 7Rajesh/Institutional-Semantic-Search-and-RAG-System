@@ -1,73 +1,67 @@
-# Institutional AI Search
+# Institutional AI Semantic Search and RAG system
 
-A hybrid, citation-checked RAG assistant for institute documents: academic regulations, admissions, hostel rules, research policy, faculty profiles, and internal circulars. Runs locally; the LLM step is optional (Ollama) and everything works without it.
+A question-answering assistant for institute documents: academic regulations, admissions, hostel rules, research policy, faculty pages, internal circulars. Ask it in plain language and it finds the right passage, answers with a citation, and tells you when it can't find anything rather than guessing.
 
-This is a from-scratch rebuild of an earlier single-notebook prototype, restructured as an installable package with an API, a chat UI, tests, document versioning, and role-based access. The agent roles (router, retriever, grader, synthesizer, verifier, abstain) follow the [agentic_rag](https://github.com/patchy631/ai-engineering-hub/tree/main/agentic_rag) project in the AI Engineering Hub, implemented here as plain functions rather than CrewAI agents.
+Everything runs locally. The LLM step is optional (Ollama) — without it you still get answers, just extractive ones, built from sentences pulled straight out of the source documents.
 
-## How a question is answered
+I built this after a first pass as a single notebook turned out to be too thin for real use: no memory of a conversation, no sense of which document version was current, no record of what people actually asked. This version is a proper package with an API, a chat UI, and tests.
 
-```
-Question (+ conversation history)
-  │
-  ├─ Memory ─────────► resolve follow-ups ("and for PhD students?") into a standalone question
-  ├─ Router ──────────► picks a document category, or searches everything
-  ├─ Retriever ───────► BM25 + dense search fused with Reciprocal Rank Fusion, then a cross-encoder reranker
-  │                     (filtered by the caller's role and by document version — superseded docs are excluded)
-  ├─ Grader ──────────► drops weak passages; if nothing is relevant, widens the search, then rewrites the
-  │                     query and retries
-  ├─ Synthesizer ─────► local LLM answers from numbered evidence only, or an extractive answer with no LLM
-  ├─ Verifier ────────► checks citations and every number/date against the evidence; one retry, then falls
-  │                     back to the extractive answer
-  └─ Abstain ─────────► "not found in the indexed documents" + closest matches, logged for the admin report
-```
+## How it answers a question
 
-## What's new compared to the notebook prototype
+A question goes through a short pipeline instead of a single similarity search:
 
-| Area | Before | Now |
-|---|---|---|
-| Shape | One notebook, module-level globals | Installable package (`isearch`), CLI, FastAPI service, Streamlit app |
-| Access | Everyone sees everything | `public` / `student` / `staff` audience levels, enforced in retrieval |
-| Versions | None — an old and a new regulation could both be cited | Documents with the same base name are grouped into a family; only the newest `effective` date is searched by default |
-| Conversation | Single-turn only | Follow-up questions are resolved into standalone queries using recent turns |
-| Feedback loop | None | Every question is logged; thumbs-down and "couldn't find it" questions surface in `isearch report` |
-| Uploads | Manual file copy + notebook re-run | `/documents` API endpoint and a Streamlit tab, admin-key protected |
-| Tests | None | pytest suite (40 tests) covering chunking, ingestion, the agent loop, verification, and the API |
+1. **Memory** – if it's a follow-up ("and for PhD students?"), fold it into a standalone question using the last few turns.
+2. **Router** – guess which document category the question belongs to, or search everything if it's unclear.
+3. **Retrieve** – BM25 and dense embeddings run in parallel, fused with Reciprocal Rank Fusion, then reranked with a cross-encoder. Filtered by the asker's role and by document version, so a superseded policy doesn't get cited as current.
+4. **Grade** – drop weak matches. If nothing clears the bar, widen the category, then rewrite the query and try again.
+5. **Answer** – the local LLM writes a short answer from the numbered evidence, or, without an LLM, the top matching sentences are returned as-is.
+6. **Verify** – every citation and every number in the answer gets checked against the evidence. If something doesn't match, it retries once, then falls back to the extractive answer.
+7. **Abstain** – if nothing relevant turns up, it says so and shows the closest passages instead of making something up.
+
+The role split (router, retriever, grader, synthesizer, verifier) borrows from the [agentic_rag](https://github.com/patchy631/ai-engineering-hub/tree/main/agentic_rag) project in the AI Engineering Hub. Here it's plain Python functions instead of CrewAI agents, which makes it easier to read and to debug when something goes wrong.
+
+
+
+- **Old documents keep getting cited as current.** Files sharing a name but differing by year or version (`regs_2021.txt`, `regs_2024.txt`) are grouped into a family. Only the newest `effective` date is searched by default.
+- **Not everyone should see everything.** Salary bands and internal circulars shouldn't show up in a student's search. Each document has a `public` / `student` / `staff` level, enforced in retrieval, not just hidden in the UI.
+- **You need to know what it's failing at.** Every question gets logged, along with whether it was answered and any thumbs-down feedback. `isearch report` surfaces the questions it couldn't answer, which is the actual signal for where the documents have gaps.
+- **A number that's merely present isn't a number that's correct.** The verifier checks that a number in the answer sits next to the same neighbouring words in the evidence, not just that the digits appear somewhere in the passage — catching things like "week 12" when the source says "week 8" but happens to mention 12 credits nearby.
 
 ## Project layout
 
 ```
-src/isearch/     the package: config, ingest, chunking, index, agent, verify, llm, store, service, cli
-app/             streamlit_app.py — the chat UI
-data/documents/  your documents, one subfolder per category (sample data included)
-eval/            eval_set.json — retrieval/answer quality questions
-tests/           pytest suite, with fast fake models so it runs without a GPU
+src/isearch/     the package — config, ingestion, chunking, index, agent, verifier, LLM client, store, API, CLI
+app/             streamlit_app.py, the chat UI
+data/documents/  your documents, one folder per category (sample data included)
+eval/            eval_set.json — labelled questions for measuring retrieval and answer quality
+tests/           pytest suite, using small fake models so it runs in a couple of seconds
 ```
 
-## Setup
+## Setting it up
 
 ```bash
 pip install -e ".[dev]"
-python -m nltk.downloader punkt   # first run only
+python -m nltk.downloader punkt
 ```
 
-Optional: install [Ollama](https://ollama.com) and run `ollama pull llama3.2` to enable LLM answers. Without it, answers are extractive — every sentence is quoted straight from a document.
+Optional: install [Ollama](https://ollama.com) and run `ollama pull llama3.2` to get prose answers instead of extractive ones.
 
-## Use it
+## Running it
 
 ```bash
-isearch reload                                     # ingest data/documents and show what was indexed
+isearch reload                                   # index data/documents and print what it found
 isearch ask "Until when can I drop a course?" --role student
-isearch serve                                       # FastAPI on :8000  (docs at /docs)
-isearch ui                                          # Streamlit chat app on :8501
-isearch eval                                        # retrieval quality, answer hit rate, threshold calibration
-isearch report                                       # usage stats, unanswered questions, downvoted answers
+isearch serve                                     # FastAPI on :8000
+isearch ui                                        # Streamlit chat app on :8501
+isearch eval                                       # recall/MRR, answer hit rate, threshold calibration
+isearch report                                     # usage stats, unanswered questions, downvotes
 ```
 
-`ISEARCH_HOME` (or `--home`) sets the project directory holding `data/` and `artifacts/`; defaults to the current directory. Any setting in `src/isearch/config.py` can be overridden with an `ISEARCH_<NAME>` environment variable — see `.env.example`.
+`--home` (or the `ISEARCH_HOME` env var) points at the project directory holding `data/` and `artifacts/`. Anything in `config.py` can be overridden with an `ISEARCH_<NAME>` environment variable — see `.env.example`.
 
-## Add your documents
+## Adding your own documents
 
-Put files under `data/documents/<category>/` (pdf, txt, md, or html). A `.txt`/`.md` file can start with front matter:
+Drop pdf, txt, md, or html files into `data/documents/<category>/`. A text or markdown file can carry front matter:
 
 ```
 title: Academic Regulations 2024
@@ -79,36 +73,34 @@ Course Registration
 ...
 ```
 
-For PDF/HTML, or to override the guess, add a sidecar `yourfile.pdf.meta.json`:
+For PDFs and HTML, add a sidecar file instead — `yourfile.pdf.meta.json`:
+
 ```json
 {"category": "academic", "audience": "staff", "effective": "2024-07-01"}
 ```
 
-Files sharing a base name that differ by a date or version (`regs_2021.txt`, `regs_2024.txt`, `regs_v2.pdf`) are grouped into one family; the notebook/service treats the one with the latest `effective` date as current and hides the rest by default (`include_superseded=True` brings them back).
+Real files always take priority over the bundled `sample_*` files, so you don't need to delete the samples by hand — just add your own documents and they'll be used instead.
 
-The bundled sample documents are **synthetic** — replace them before drawing any real conclusions. `WRITE_SAMPLES`-style logic isn't in this version: real files simply take priority over `sample_*` files whenever both exist in a folder.
+The sample documents are made up for testing. Every number and rule in them is invented, so don't treat them as real policy.
 
-## Evaluate and calibrate
+## Checking retrieval quality
 
-`eval/eval_set.json` holds labelled questions (`contains` = a phrase the right passage must have) and a list of out-of-scope questions. `isearch eval` reports:
-- Recall@5 and MRR for BM25-only, dense-only, hybrid, and hybrid+rerank
-- End-to-end answer hit rate and abstention correctness (extractive mode, so it doesn't depend on Ollama)
-- A suggested `RELEVANCE_THRESHOLD` from the gap between in-scope and out-of-scope reranker scores
+`eval/eval_set.json` has labelled questions (a phrase the right passage should contain) plus a handful of out-of-scope ones. `isearch eval` reports recall@5 and MRR for BM25-only, dense-only, hybrid, and hybrid+rerank, an end-to-end answer hit rate, and a suggested relevance threshold based on the gap between in-scope and out-of-scope scores.
 
-Replace the sample questions with 20–50 real ones from your users once real documents are loaded, and re-run.
+The sample eval set is small and will look artificially perfect. Swap in 20–50 real questions once real documents are loaded and re-run before trusting the numbers.
 
-## Run the tests
+## Tests
 
 ```bash
 pytest
 ```
 
-The suite injects small deterministic stand-ins for the embedding and reranker models (`tests/conftest.py`) so it runs in seconds without downloading anything, plus a scriptable fake Ollama client to exercise the LLM/verifier/fallback paths. It covers chunking edge cases (headings, overlap, a single 500-word sentence), PDF/HTML ingestion (running headers stripped, scanned PDFs skipped not crashed, nav/script stripped, tables kept), the full agent loop (abstain, widen, rewrite, role filtering, version filtering, conversation memory), the verifier (rejects a right-looking-but-wrong number like "week 12" when the evidence says "week 8" but mentions 12 elsewhere), and every API endpoint.
+The suite swaps in small deterministic stand-ins for the embedding and reranker models, so it doesn't need a GPU or a download to run. It covers chunking edge cases, PDF and HTML ingestion, the full agent loop (abstaining, widening, rewriting, role and version filtering, conversation memory), the verifier, and the API endpoints.
 
-## Known limits
+## Known limitations
 
-- **Scanned PDFs** have no text layer and are skipped; run OCR (e.g. `ocrmypdf`) first.
-- **The verifier checks digits, not spelled-out numbers.** "Thirty days" passes the number check even if wrong; the optional LLM cross-check catches some of these.
-- **Multi-part questions** ("what's the fee and the deadline?") get one retrieval pass; splitting into sub-questions is a natural next step.
-- **Large corpora**: swap `IndexFlatIP` for `IndexHNSWFlat` in `index.py` past roughly 100k chunks.
-- I could not reach Hugging Face from the environment I built this in, so `sentence-transformers` and Ollama were exercised only through the fixtures in `tests/conftest.py`, not the real models. Run `isearch eval` yourself after installing to confirm real-world retrieval quality and to calibrate `RELEVANCE_THRESHOLD`.
+- Scanned PDFs have no text layer and get skipped, not crashed on. Run them through OCR first.
+- The verifier checks digits, not words, so "thirty days" would slip past even if the source says something else. The optional LLM cross-check catches some of this but not all of it.
+- A question with two parts ("what's the fee and the deadline?") only gets one retrieval pass. Splitting it into sub-questions would be the natural next step.
+- Past roughly 100k chunks, swap `IndexFlatIP` for `IndexHNSWFlat` in `index.py`.
+- I built and tested this without access to Hugging Face or a real Ollama instance, so the retrieval quality numbers above are unverified. Run `isearch eval` yourself after installing before relying on the threshold it picks.
