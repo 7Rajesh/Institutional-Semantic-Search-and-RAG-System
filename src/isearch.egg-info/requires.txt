@@ -1,0 +1,17 @@
+numpy
+pandas
+rank-bm25
+sentence-transformers
+faiss-cpu
+pypdf
+beautifulsoup4
+requests
+nltk
+fastapi
+uvicorn[standard]
+pydantic>=2
+streamlit
+
+[dev]
+pytest
+reportlab

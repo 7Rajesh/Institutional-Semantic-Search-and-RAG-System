@@ -1,0 +1,24 @@
+{
+  "questions": [
+    {"q": "What are the rules for course withdrawal?", "contains": "end of week 8"},
+    {"q": "Until when can I drop a course?", "contains": "end of week 8"},
+    {"q": "Will I be allowed in the end-sem exam with low attendance?", "contains": "barred from the end-semester examination"},
+    {"q": "Can my friend stay overnight in my hostel room?", "contains": "overnight stay of visitors"},
+    {"q": "When does the hostel gate close?", "contains": "22:30"},
+    {"q": "How much is the tuition fee per semester?", "contains": "1,25,000"},
+    {"q": "How long does a PhD take?", "contains": "maximum of 6 years"},
+    {"q": "Which professor works on information retrieval?", "contains": "information retrieval"},
+    {"q": "How do I ask for re-evaluation of my paper?", "contains": "5 working days"},
+    {"q": "What is the fine for returning library books late?", "contains": "Rs 2 per day"},
+    {"q": "How long does the grievance cell take to reply?", "contains": "15 working days"},
+    {"q": "What CGPA puts a student on probation?", "contains": "below 5.0"},
+    {"q": "Until when can I change my hostel room?", "contains": "first two weeks"},
+    {"q": "What marks do I need in Class 12 to apply?", "contains": "75% aggregate"}
+  ],
+  "out_of_scope": [
+    "Who won the cricket world cup?",
+    "What is the capital of France?",
+    "How do I bake a chocolate cake?",
+    "What is the average placement package?"
+  ]
+}

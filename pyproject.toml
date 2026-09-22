@@ -1,0 +1,33 @@
+[project]
+name = "isearch"
+version = "0.1.0"
+description = "Institutional AI Search: hybrid, citation-checked RAG over institute documents"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pandas",
+    "rank-bm25",
+    "sentence-transformers",
+    "faiss-cpu",
+    "pypdf",
+    "beautifulsoup4",
+    "requests",
+    "nltk",
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic>=2",
+    "streamlit",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "reportlab"]
+
+[project.scripts]
+isearch = "isearch.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

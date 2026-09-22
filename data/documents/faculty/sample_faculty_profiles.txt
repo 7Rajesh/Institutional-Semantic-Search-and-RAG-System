@@ -1,0 +1,13 @@
+title: Faculty Profiles
+category: faculty
+audience: public
+effective: 2024-01-01
+
+Dr. Anita Sharma
+Associate Professor, Department of Computer Science and Engineering. Research areas are machine learning, information retrieval and natural language processing. Office: Block C, Room 214. Email: anita.sharma@example.edu.
+
+Prof. Rahul Verma
+Professor, Department of Civil Engineering. Research areas are structural health monitoring, earthquake engineering and smart materials. Office: Block A, Room 108. Email: rahul.verma@example.edu.
+
+Dr. Meera Iyer
+Assistant Professor, Department of Physics. Research areas are quantum optics and photonic devices. Office: Block D, Room 301. Email: meera.iyer@example.edu.
