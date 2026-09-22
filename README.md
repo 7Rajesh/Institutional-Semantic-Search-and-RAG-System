@@ -16,7 +16,6 @@ A question goes through a short pipeline instead of a single similarity search:
 6. **Verify** – every citation and every number in the answer gets checked against the evidence. If something doesn't match, it retries once, then falls back to the extractive answer.
 7. **Abstain** – if nothing relevant turns up, it says so and shows the closest passages instead of making something up.
 
-The role split (router, retriever, grader, synthesizer, verifier) borrows from the [agentic_rag](https://github.com/patchy631/ai-engineering-hub/tree/main/agentic_rag) project in the AI Engineering Hub. Here it's plain Python functions instead of CrewAI agents, which makes it easier to read and to debug when something goes wrong.
 
 
 
