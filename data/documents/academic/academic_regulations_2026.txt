@@ -1,7 +1,7 @@
 title: Academic Regulations 2024
 category: academic
 audience: student
-effective: 2024-07-01
+effective: 2026-07-01
 
 Course Registration
 Students must complete course registration within the first 7 days of each semester. Late registration is allowed until day 14 with a late fee of Rs 500 and written approval from the Dean of Academic Affairs. Registration after day 14 is not permitted.
