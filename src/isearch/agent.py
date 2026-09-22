@@ -16,7 +16,7 @@ from .store import Store
 from .text import split_sentences, stem
 from .verify import check_answer
 
-# Words students use vs. words the documents use. Extend for your institute (acronyms, office names).
+# Words students use vs. words the documents use. Extend for your institute .
 SYNONYMS = {
     "drop": ["withdraw", "withdrawal"], "quit": ["withdraw"], "fees": ["fee", "tuition"],
     "hostel": ["residence"], "leave": ["absence"], "guest": ["visitor"], "friend": ["visitor"],
