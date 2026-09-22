@@ -4,8 +4,6 @@ A question-answering assistant for institute documents: academic regulations, ad
 
 Everything runs locally. The LLM step is optional (Ollama) — without it you still get answers, just extractive ones, built from sentences pulled straight out of the source documents.
 
-I built this after a first pass as a single notebook turned out to be too thin for real use: no memory of a conversation, no sense of which document version was current, no record of what people actually asked. This version is a proper package with an API, a chat UI, and tests.
-
 ## How it answers a question
 
 A question goes through a short pipeline instead of a single similarity search:
